@@ -2,6 +2,7 @@ function HTMLActuator() {
   this.tileContainer    = document.querySelector(".tile-container");
   this.scoreContainer   = document.querySelector(".score-container");
   this.bestContainer    = document.querySelector(".best-container");
+  this.nearbyContainer  = document.querySelector(".nearby-container");
   this.messageContainer = document.querySelector(".game-message");
 
   this.score = 0;
@@ -23,6 +24,9 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
+    if (metadata.nearbyScore) { 
+      self.updateNearbyScore(metadata.nearbyScore);
+    }
 
     if (metadata.terminated) {
       if (metadata.over) {
@@ -122,6 +126,10 @@ HTMLActuator.prototype.updateScore = function (score) {
 
 HTMLActuator.prototype.updateBestScore = function (bestScore) {
   this.bestContainer.textContent = bestScore;
+};
+
+HTMLActuator.prototype.updateNearbyScore = function (nearbyScore) {
+  this.nearbyContainer.textContent = nearbyScore;
 };
 
 HTMLActuator.prototype.message = function (won) {
