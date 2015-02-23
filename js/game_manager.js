@@ -9,6 +9,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
+  this.inputManager.on("locate", this.locate.bind(this));
 
   this.setup();
 }
@@ -24,6 +25,14 @@ GameManager.prototype.restart = function () {
 GameManager.prototype.keepPlaying = function () {
   this.keepPlaying = true;
   this.actuator.continueGame(); // Clear the game won/lost message
+};
+
+// Geolocate the game
+GameManager.prototype.locate = function () {
+  manager = this;
+  this.storageManager.locate(function() { 
+    manager.actuate() 
+  });
 };
 
 // Return true if the game is lost, or has won and the user hasn't kept playing
@@ -80,6 +89,7 @@ GameManager.prototype.actuate = function () {
   if (this.storageManager.getBestScore() < this.score) {
     this.storageManager.setBestScore(this.score);
   }
+  this.storageManager.addNearbyScore(this.score);
 
   // Clear the state when the game is over (game over only, not win)
   if (this.over) {
@@ -88,14 +98,20 @@ GameManager.prototype.actuate = function () {
     this.storageManager.setGameState(this.serialize());
   }
 
-  this.actuator.actuate(this.grid, {
+  var metadata = {
     score:      this.score,
+    nearbyScore: this.score > this.nearbyScore ? this.score : this.nearbyScore,
     over:       this.over,
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
     terminated: this.isGameTerminated()
-  });
+  }
 
+  manager = this;
+  this.storageManager.getNearbyScore(function(nearbyScore) {
+    manager.nearbyScore = nearbyScore;
+  });
+  this.actuator.actuate(this.grid, metadata); 
 };
 
 // Represent the current game as an object
